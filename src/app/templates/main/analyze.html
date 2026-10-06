@@ -1,4 +1,29 @@
 {% extends "base.html" %}
+
 {% block content %}
-        <h1>WIP</h1>
+<h1>Analyze a Chest X-ray</h1>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <p>
+        {{ form.image.label }}<br>
+        {{ form.image() }}<br>
+        {% for error in form.image.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+    <p>
+        {{ form.question.label }}<br>
+        {{ form.question(rows=4, cols=60) }}<br>
+        {% for error in form.question.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+    <p>{{ form.submit() }}</p>
+</form>
+
+<p><a href="{{ url_for('main.history') }}">View my analysis history</a></p>
 {% endblock %}

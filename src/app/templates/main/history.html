@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Analysis History</h1>
+
+{% if analyses %}
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Image</th>
+            <th>Strategy</th>
+            <th>Preview</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in analyses %}
+        <tr>
+            <td>{{ a.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>{{ a.image_filename }}</td>
+            <td>{{ a.retrieval_strategy }}</td>
+            <td>{{ a.short_report }}</td>
+            <td><a href="{{ url_for('main.result', analysis_id=a.id) }}">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No analyses yet. <a href="{{ url_for('main.analyze') }}">Analyze your first image</a>.</p>
+{% endif %}
+{% endblock %}

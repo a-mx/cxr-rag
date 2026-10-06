@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Analysis Result</h1>
+
+<p><strong>Image:</strong> {{ analysis.image_filename }}</p>
+<p><strong>Date:</strong> {{ analysis.created_at.strftime("%Y-%m-%d %H:%M UTC") }}</p>
+<p><strong>Strategy:</strong> {{ analysis.retrieval_strategy }}</p>
+<p><strong>Time:</strong> {{ analysis.inference_time_ms }} ms</p>
+{% if analysis.confidence_score is not none %}
+    <p><strong>Confidence:</strong> {{ "%.2f"|format(analysis.confidence_score) }}</p>
+{% endif %}
+
+{% if analysis.user_prompt %}
+    <h2>Your question</h2>
+    <p>{{ analysis.user_prompt }}</p>
+{% endif %}
+
+<h2>Generated report</h2>
+<pre >{{ analysis.generated_report }}</pre>
+
+<h2>Retrieved cases (top-{{ analysis.retrieved_cases|length }})</h2>
+<ul>
+    {% for case in analysis.retrieved_cases %}
+        <li>
+            Case <code>{{ case.case_id }}</code> —
+            similarity: {{ "%.3f"|format(case.score) }}
+        </li>
+    {% endfor %}
+</ul>
+
+<p><a href="{{ url_for('main.analyze') }}">Analyze another image</a></p>
+{% endblock %}

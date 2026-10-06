@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 load_dotenv()
 class Config:
@@ -13,3 +14,9 @@ class Config:
     ARGON2_SALT_LEN=os.getenv("ARGON2_SALT_LEN")
 
     EXAMPLE_PASSWORD_HASH = os.getenv("EXAMPLE_PASSWORD_HASH")
+
+    ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+    DATA_DIR = ROOT_DIR.joinpath("data")
+    UPLOAD_DIR = DATA_DIR.joinpath("uploads")
+
+    TOP_K = 5 #todo: reading this from .yaml config
