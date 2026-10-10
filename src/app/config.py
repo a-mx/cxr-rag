@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from pathlib import Path
+import yaml
 import os
 load_dotenv()
 class Config:
@@ -19,4 +20,13 @@ class Config:
     DATA_DIR = ROOT_DIR.joinpath("data")
     UPLOAD_DIR = DATA_DIR.joinpath("uploads")
 
-    TOP_K = 5 #todo: reading this from .yaml config
+    CONFIG_PATH = ROOT_DIR.joinpath("config.yaml")
+    with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+        try:
+            cfg = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print(e)
+    TOP_K = cfg["top_k"]
+
+if __name__ == "__main__":
+    pass
