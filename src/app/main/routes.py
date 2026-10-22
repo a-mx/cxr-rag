@@ -60,7 +60,7 @@ def analyze():
             image_filename=original_name,
             user_prompt=form.question.data or None,
             generated_report=result.report,
-            top_k=5,
+            top_k=k,
             retrieval_strategy="image_only",
             inference_time_ms=result.inference_time_ms,
             confidence_score=result.confidence_score,

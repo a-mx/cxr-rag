@@ -1,11 +1,10 @@
 from flask import Flask
 from src.app.config import Config
-from flask_sqlalchemy import SQLAlchemy
 
 from src.app.auth.routes import auth_bp
 from src.app.main.routes import main_bp
 
-from src.app.extensions import db, login_manager, csrf
+from src.app.extensions import db, login_manager, csrf, model_registry
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -14,6 +13,9 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
     db.init_app(app)
+
+    model_registry.init_app(app)
+    app.extensions["model_registry"] = model_registry
 
     from src.app import models
     app.register_blueprint(auth_bp)

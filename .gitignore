@@ -1,5 +1,6 @@
 .env
 .venv
+.venv-wsl
 __pycache__
 data
 plan.md

@@ -1,1 +1,3 @@
+encoder_model: google/medsiglip-448
+generator_model: google/medgemma-1.5-4b-it
 top_k: 5
