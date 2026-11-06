@@ -7,15 +7,15 @@ class Generator:
     def __init__(self, model_path):
         self.model_path = str(model_path)
         self.processor = AutoProcessor.from_pretrained(self.model_path)
-
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModelForImageTextToText.from_pretrained(
             self.model_path,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
+            dtype=torch.bfloat16,
+            device_map="auto"
         )
     
     @torch.inference_mode()
-    def generate(self, image, retrieved_context="", max_new_tokens=1000):
+    def generate(self, image, retrieved_context="", max_new_tokens=2000):
         image = Image.open(image).convert("RGB")
 
         prompt = f"""
@@ -68,25 +68,19 @@ class Generator:
             tokenize=True,
             return_dict=True,
             return_tensors="pt",
-        )
+        ).to(self.device, dtype=torch.bfloat16)
+
+        input_len = inputs["input_ids"].shape[-1]
 
         inputs = {
             key: value.to(self.device)
             for key, value in inputs.items()
         }
 
-        generated_ids = self.model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            do_sample=False,
-        )
+        with torch.inference_mode():
+            generation = self.model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
+            generation = generation[0][input_len:]
 
-        input_length = inputs["input_ids"].shape[-1]
-        generated_ids = generated_ids[:, input_length:]
-
-        return self.processor.batch_decode(
-            generated_ids,
-            skip_special_tokens=True,
-            clean_up_tokenization_spaces=True,
-        )[0].strip()
+        decoded = self.processor.decode(generation, skip_special_tokens=True)
+        return decoded
 

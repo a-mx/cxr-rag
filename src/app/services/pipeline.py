@@ -18,15 +18,16 @@ def analyze_image(image_path: Path, question: str, top_k: int, strategy: str = "
     
     registry = current_app.extensions["model_registry"]
 
-    image_embedding = registry.encoder.encode_image(image_path)
+    #image_embedding = registry.encoder.encode_image(image_path)
     images_index_path = current_app.config.get("IMAGES_INDEX_PATH")
     dicom_ids_path = current_app.config.get("DICOM_IDS_PATH")
 
-    retriever = Retriever(index_path=images_index_path, k=top_k, ids_path=dicom_ids_path)
+    #retriever = Retriever(index_path=images_index_path, k=top_k, ids_path=dicom_ids_path)
 
-    results = retriever.retrieve(embedding=image_embedding)
+    #results = retriever.retrieve(embedding=image_embedding)
+    results = []
 
-    context = None #todo
+    context = "" #todo
 
     report = registry.generator.generate(
         image_path,

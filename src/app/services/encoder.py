@@ -7,11 +7,11 @@ class Encoder:
     def __init__(self, model_path):
         self.model_path = str(model_path)
         self.processor = AutoProcessor.from_pretrained(self.model_path)
-
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModel.from_pretrained(
             self.model_path,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
+            dtype=torch.bfloat16,
+            device_map=self.device,
         )
         
     @torch.inference_mode()

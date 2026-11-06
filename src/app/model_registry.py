@@ -7,9 +7,9 @@ class ModelRegistry:
 
     def init_app(self, app):
         self.encoder = Encoder(
-            app.config("ENCODER_MODEL_PATH")
+            app.config["ENCODER_MODEL_PATH"]
         )
 
         self.generator = Generator(
-            app.config("GENERATOR_MODEL_PATH")
+            app.config["GENERATOR_MODEL_PATH"]
         )
