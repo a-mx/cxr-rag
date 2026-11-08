@@ -19,4 +19,15 @@ class AnalyzeForm(FlaskForm):
     )
 
     submit = SubmitField(label="Analyze")
+
+class ReportEditForm(FlaskForm):
+    content = TextAreaField(
+        "Report",
+        validators=[
+            DataRequired(),
+            Length(max=10000),
+        ],
+    )
+
+    submit = SubmitField("Save revision")
     

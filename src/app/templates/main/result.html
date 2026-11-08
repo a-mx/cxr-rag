@@ -16,8 +16,8 @@
     <p>{{ analysis.user_prompt }}</p>
 {% endif %}
 
-<h2>Generated report</h2>
-<pre >{{ analysis.generated_report }}</pre>
+<h2>Report</h2>
+<pre>{{ analysis.current_report }}</pre>
 
 <h2>Retrieved cases (top-{{ analysis.retrieved_cases|length }})</h2>
 <ul>
@@ -28,6 +28,8 @@
         </li>
     {% endfor %}
 </ul>
-
+<p><a href="{{ url_for('main.edit_result', analysis_id=analysis.id) }}">Edit report</a></p>
+<p><a href="{{ url_for('main.result_history', analysis_id=analysis.id) }}">View revisions</a></p>
 <p><a href="{{ url_for('main.analyze') }}">Analyze another image</a></p>
+
 {% endblock %}

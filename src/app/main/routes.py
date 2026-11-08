@@ -14,9 +14,9 @@ from flask_login import (
 import uuid
 from pathlib import Path
 from werkzeug.utils import secure_filename
-from src.app.main.forms import AnalyzeForm
+from src.app.main.forms import AnalyzeForm, ReportEditForm
 from src.app.services.pipeline import analyze_image
-from src.app.models import Analysis, AuditLog
+from src.app.models import Analysis, AuditLog, ReportRevision
 from src.app.extensions import db
 main_bp = Blueprint('main', __name__)
 
@@ -32,6 +32,13 @@ def _save_upload(file_storage) -> tuple[str, Path]:
 
     file_storage.save(dest)
     return original_name, dest
+
+def _can_access_analysis(analysis):
+    return (
+        current_user.is_admin
+        or current_user.role == "radiologist"
+        or analysis.user_id == current_user.id
+    )
 
 
 @main_bp.route('/')
@@ -68,6 +75,16 @@ def analyze():
         )
         db.session.add(analysis)
 
+        db.session.flush()
+        revision = ReportRevision(
+            analysis_id=analysis.id,
+            author_id=current_user.id,
+            revision_number=1,
+            content=result.report,
+            source="ai_generated",
+        )
+        db.session.add(revision)
+
         AuditLog.log(
             event_type="analysis",
             user_id=current_user.id,
@@ -98,6 +115,102 @@ def result(analysis_id: int):
         return redirect(url_for("main.history"))
 
     return render_template("main/result.html", analysis=analysis)
+
+@main_bp.route("/result/<int:analysis_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_result(analysis_id: int):
+    analysis = db.session.get(Analysis, analysis_id)
+
+    if analysis is None:
+        flash("Analysis not found.", "warning")
+        return redirect(url_for("main.history"))
+
+    if not _can_access_analysis(analysis):
+        flash("You do not have permission to edit this report.", "danger")
+        return redirect(url_for("main.history"))
+
+    form = ReportEditForm()
+
+    latest_revision = (
+        analysis.revisions[-1]
+        if analysis.revisions
+        else None
+    )
+
+    current_content = (
+        latest_revision.content
+        if latest_revision
+        else analysis.generated_report
+    )
+
+    if form.validate_on_submit():
+        next_version = (
+            latest_revision.revision_number + 1
+            if latest_revision
+            else 1
+        )
+
+        revision = ReportRevision(
+            analysis_id=analysis.id,
+            author_id=current_user.id,
+            revision_number=next_version,
+            content=form.content.data,
+            source="manual",
+        )
+
+        db.session.add(revision)
+
+        AuditLog.log(
+            event_type="report_edited",
+            user_id=current_user.id,
+            description=(
+                f"Edited report for analysis {analysis.id}; "
+                f"revision {next_version}"
+            ),
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get("User-Agent", "")[:255],
+        )
+
+        db.session.commit()
+
+        flash("Report revision saved.", "success")
+        return redirect(url_for("main.result", analysis_id=analysis.id))
+
+    if request.method == "GET":
+        form.content.data = current_content
+
+    return render_template(
+        "main/edit.html",
+        form=form,
+        analysis=analysis,
+        current_content=current_content,
+    )
+
+@main_bp.route("/result/<int:analysis_id>/history")
+@login_required
+def result_history(analysis_id: int):
+    analysis = db.session.get(Analysis, analysis_id)
+
+    if analysis is None:
+        flash("Analysis not found.", "warning")
+        return redirect(url_for("main.history"))
+
+    if not _can_access_analysis(analysis):
+        flash("You do not have permission to view this history.", "danger")
+        return redirect(url_for("main.history"))
+
+    revisions = (
+        ReportRevision.query
+        .filter_by(analysis_id=analysis.id)
+        .order_by(ReportRevision.revision_number.desc())
+        .all()
+    )
+
+    return render_template(
+        "main/revisions.html",
+        analysis=analysis,
+        revisions=revisions,
+    )
 
 
 @main_bp.route("/history")

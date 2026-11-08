@@ -42,12 +42,24 @@ class Analysis(db.Model):
         index=True,
     )
 
+    revisions = db.relationship(
+        "ReportRevision",
+        back_populates="analysis",
+        cascade="all, delete-orphan",
+        order_by="ReportRevision.revision_number",
+    )
+
     @property
     def short_report(self) -> str:
-        if not self.generated_report:
-            return ""
-        text = self.generated_report.strip().replace("\n", " ")
+        text = self.current_report.strip().replace("\n", " ")
         return text[:150] + "..." if len(text) > 150 else text
+
+    @property
+    def current_report(self) -> str:
+        if self.revisions:
+            return self.revisions[-1].content
+
+        return self.generated_report
 
     @property
     def case_count(self) -> int:

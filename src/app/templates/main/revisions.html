@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>View revisions</h1>
+
+{% if revisions %}
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Version</th>
+            <th>Date</th>
+            <th>Author</th>
+            <th>Source</th>
+            <th>Content</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for revision in revisions %}
+        <tr>
+            <td>{{ revision.revision_number }}</td>
+            <td>
+                {{ revision.created_at.strftime("%Y-%m-%d %H:%M") }}
+            </td>
+            <td>
+                {{ revision.author.username if revision.author else "Unknown" }}
+            </td>
+            <td>{{ revision.source }}</td>
+            <td>
+                <pre>{{ revision.content }}</pre>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No revisions found.</p>
+{% endif %}
+
+<p>
+    <a href="{{ url_for('main.result', analysis_id=analysis.id) }}">
+        Back to report
+    </a>
+</p>
+
+<p>
+    <a href="{{ url_for('main.history') }}">
+        View analysis history
+    </a>
+</p>
+{% endblock %}
