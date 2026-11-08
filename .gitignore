@@ -1,9 +1,10 @@
 .env
-.venv
-.venv-wsl
+/.venv/
+/.venv-wsl/
 __pycache__
-data
+/data/
 plan.md
-instance
+/instance/
 notebooks
 /models/
+/migrations/
