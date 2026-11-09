@@ -15,6 +15,8 @@ class Analysis(db.Model):
         index=True,
     )
     image_filename = db.Column(db.String(255), nullable=False)
+    stored_image_name = db.Column(db.String(255), nullable=False)
+
     user_prompt = db.Column(db.Text, nullable=True)
 
     generated_report = db.Column(db.Text, nullable=False)

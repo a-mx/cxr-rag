@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template
 from flask import (
+    Blueprint,
+    send_file,
+    abort,
     render_template,
     redirect,
     url_for,
@@ -11,6 +13,7 @@ from flask_login import (
     login_required,
     current_user
 )
+
 import uuid
 from pathlib import Path
 from werkzeug.utils import secure_filename
@@ -65,6 +68,7 @@ def analyze():
         analysis = Analysis(
             user_id=current_user.id,
             image_filename=original_name,
+            stored_image_name=image_path.name,
             user_prompt=form.question.data or None,
             generated_report=result.report,
             top_k=k,
@@ -99,6 +103,25 @@ def analyze():
         return redirect(url_for("main.result", analysis_id=analysis.id))
     
     return render_template('main/analyze.html', form=form)
+
+@main_bp.route("/result/<int:analysis_id>/image")
+@login_required
+def analysis_image(analysis_id: int):
+    analysis = db.session.get(Analysis, analysis_id)
+
+    if analysis is None:
+        abort(404)
+
+    if not _can_access_analysis(analysis):
+        abort(403)
+
+    upload_dir = Path(current_app.config["UPLOAD_DIR"]).resolve()
+    image_path = (upload_dir / analysis.stored_image_name).resolve()
+
+    if upload_dir not in image_path.parents or not image_path.is_file():
+        abort(404)
+
+    return send_file(image_path)
 
 
 @main_bp.route("/result/<int:analysis_id>")

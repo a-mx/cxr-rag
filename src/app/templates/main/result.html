@@ -16,6 +16,13 @@
     <p>{{ analysis.user_prompt }}</p>
 {% endif %}
 
+<h2>Uploaded image</h2>
+<img
+    src="{{ url_for('main.analysis_image', analysis_id=analysis.id) }}"
+    alt="Uploaded chest X-ray"
+    style="max-width: 700px; width: 100%; height: auto;"
+>
+
 <h2>Report</h2>
 <pre>{{ analysis.current_report }}</pre>
 
