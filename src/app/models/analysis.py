@@ -51,6 +51,13 @@ class Analysis(db.Model):
         order_by="ReportRevision.revision_number",
     )
 
+    bounding_boxes = db.relationship(
+        "BoundingBox",
+        back_populates="analysis",
+        cascade="all, delete-orphan",
+
+    )
+
     @property
     def short_report(self) -> str:
         text = self.current_report.strip().replace("\n", " ")
