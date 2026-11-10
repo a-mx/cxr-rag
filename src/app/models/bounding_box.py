@@ -14,21 +14,23 @@ class BoundingBox(db.Model):
         )
 
     analysis = db.relationship("Analysis", back_populates="bounding_boxes")
-    
-    x0 = db.Column(db.Float, nullable=False)
-    x1 = db.Column(db.Float, nullable=False)
+
+    label = db.Column(db.String(128), nullable=False)
+    #[y0, x0, y1, x1]
+
     y0 = db.Column(db.Float, nullable=False)
+    x0 = db.Column(db.Float, nullable=False)
     y1 = db.Column(db.Float, nullable=False)
+    x1 = db.Column(db.Float, nullable=False)
 
     @property
     def to_list(self) -> list[float]:
-        return [self.x0, self.y0, self.x1, self.y1]
+        return [self.y0, self.x0, self.y1, self.x1]
     
-    def __repr__(self) -> str:
+    def __repr__(self):
         return (
-            f"<Analysis id={self.id}"
-            "x0={self.x0}"
-            "x1={self.x1}"
-            "y0={self.y0}"
-            "y1={self.y1}>"
+            f"<BoundingBox id={self.id} "
+            f"analysis_id={self.analysis_id} "
+            f"y0={self.y0} x0={self.x0} "
+            f"y1={self.y1} x1={self.x1}>"
         )

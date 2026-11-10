@@ -16,12 +16,40 @@
     <p>{{ analysis.user_prompt }}</p>
 {% endif %}
 
+
 <h2>Uploaded image</h2>
-<img
-    src="{{ url_for('main.analysis_image', analysis_id=analysis.id) }}"
-    alt="Uploaded chest X-ray"
-    style="max-width: 700px; width: 100%; height: auto;"
->
+<div class="image-viewer">
+    <img
+        src="{{ url_for('main.analysis_image', analysis_id=analysis.id) }}"
+        alt="Uploaded chest X-ray"
+    >
+
+    {% for box in analysis.bounding_boxes %}
+    <div
+        class="bounding-box"
+        style="
+            left: {{ box.x0 * 100 }}%;
+            top: {{ box.y0 * 100 }}%;
+            width: {{ (box.x1 - box.x0) * 100 }}%;
+            height: {{ (box.y1 - box.y0) * 100 }}%;
+        "
+    >
+        <span>{{ box.label }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+{% if analysis.bounding_boxes %}
+<div class="bounding-box-controls">
+    <button
+        type="button"
+        id="toggle-boxes"
+        aria-pressed="false"
+    >
+        Show bounding boxes
+    </button>
+</div>
+{% endif %}
 
 <h2>Report</h2>
 <pre>{{ analysis.current_report }}</pre>
@@ -38,5 +66,21 @@
 <p><a href="{{ url_for('main.edit_result', analysis_id=analysis.id) }}">Edit report</a></p>
 <p><a href="{{ url_for('main.result_history', analysis_id=analysis.id) }}">View revisions</a></p>
 <p><a href="{{ url_for('main.analyze') }}">Analyze another image</a></p>
+
+<script>
+    const toggleButton = document.getElementById("toggle-boxes");
+    const imageViewer = document.querySelector(".image-viewer");
+
+    if (toggleButton && imageViewer) {
+        toggleButton.addEventListener("click", () => {
+            const visible = imageViewer.classList.toggle("show-boxes");
+
+            toggleButton.setAttribute("aria-pressed", visible);
+            toggleButton.textContent = visible
+                ? "Hide bounding boxes"
+                : "Show bounding boxes";
+        });
+    }
+</script>
 
 {% endblock %}

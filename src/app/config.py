@@ -17,6 +17,12 @@ class Config:
     EXAMPLE_PASSWORD_HASH = os.getenv("EXAMPLE_PASSWORD_HASH")
 
     ROOT_DIR = Path(__file__).resolve().parents[2]
+
+    SRC_DIR = ROOT_DIR.joinpath("src")
+
+    PROMPT_FILENAME = "radiology_report.txt"
+    PROMPT_PATH = SRC_DIR.joinpath("prompts").joinpath(PROMPT_FILENAME)
+    
     DATA_DIR = ROOT_DIR.joinpath("data")
     UPLOAD_DIR = DATA_DIR.joinpath("uploads")
 

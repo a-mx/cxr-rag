@@ -19,7 +19,7 @@ from pathlib import Path
 from werkzeug.utils import secure_filename
 from src.app.main.forms import AnalyzeForm, ReportEditForm
 from src.app.services.pipeline import analyze_image
-from src.app.models import Analysis, AuditLog, ReportRevision
+from src.app.models import Analysis, AuditLog, ReportRevision, BoundingBox
 from src.app.extensions import db
 main_bp = Blueprint('main', __name__)
 
@@ -78,8 +78,21 @@ def analyze():
             retrieved_cases=result.retrieved_cases,
         )
         db.session.add(analysis)
-
         db.session.flush()
+
+        for box in result.bounding_boxes:
+            analysis.bounding_boxes.append(
+                BoundingBox(
+                    label=box["label"],
+                    x0=box["x0"],
+                    y0=box["y0"],
+                    x1=box["x1"],
+                    y1=box["y1"],
+                )
+            )
+
+
+
         revision = ReportRevision(
             analysis_id=analysis.id,
             author_id=current_user.id,

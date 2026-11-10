@@ -55,7 +55,6 @@ class Analysis(db.Model):
         "BoundingBox",
         back_populates="analysis",
         cascade="all, delete-orphan",
-
     )
 
     @property

@@ -1,0 +1,35 @@
+.image-viewer {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 700px;
+}
+
+.image-viewer img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.bounding-box {
+    display: none;
+    position: absolute;
+    box-sizing: border-box;
+    border: 2px solid red;
+    pointer-events: none;
+}
+
+.image-viewer.show-boxes .bounding-box {
+    display: block;
+}
+
+.bounding-box span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 2px 5px;
+    background: red;
+    color: white;
+    font-size: 12px;
+    white-space: nowrap;
+}

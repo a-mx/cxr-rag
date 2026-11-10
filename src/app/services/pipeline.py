@@ -10,6 +10,7 @@ from src.app.services.retriever import Retriever
 class PipelineResult:
     report: str
     retrieved_cases: list[dict] = field(default_factory=list)
+    bounding_boxes: list[dict] = field(default_factory=list)
     inference_time_ms: int = 0
     confidence_score: float | None = None
 
@@ -29,7 +30,7 @@ def analyze_image(image_path: Path, question: str, top_k: int, strategy: str = "
 
     context = "" #todo
 
-    report = registry.generator.generate(
+    generated = registry.generator.generate(
         image_path,
         retrieved_context=context,
     )
@@ -37,7 +38,8 @@ def analyze_image(image_path: Path, question: str, top_k: int, strategy: str = "
     elapsed_ms = int((time.perf_counter() - start) * 1000)
 
     return PipelineResult(
-        report=report,
+        report=generated.report,
+        bounding_boxes=generated.bounding_boxes,
         retrieved_cases=results,
         inference_time_ms=elapsed_ms,
         confidence_score=0.5
