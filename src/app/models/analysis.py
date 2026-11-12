@@ -15,7 +15,10 @@ class Analysis(db.Model):
         index=True,
     )
     image_filename = db.Column(db.String(255), nullable=False)
+    lateral_filename =  db.Column(db.String(255), nullable=True)
+
     stored_image_name = db.Column(db.String(255), nullable=False)
+    stored_lateral_image_name = db.Column(db.String(255), nullable=True)
 
     user_prompt = db.Column(db.Text, nullable=True)
 

@@ -16,6 +16,7 @@ class BoundingBox(db.Model):
     analysis = db.relationship("Analysis", back_populates="bounding_boxes")
 
     label = db.Column(db.String(128), nullable=False)
+    view = db.Column(db.String(20), nullable=False, default="frontal")
     #[y0, x0, y1, x1]
 
     y0 = db.Column(db.Float, nullable=False)

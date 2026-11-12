@@ -13,7 +13,8 @@ The JSON must have exactly this structure:
   "bounding_boxes": [
     {
       "box_2d": [y0, x0, y1, x1],
-      "label": "string"
+      "label": "string",
+      "view": "frontal"
     }
   ]
 }
@@ -41,6 +42,8 @@ Requirements:
    - y0 must be smaller than y1.
    - x0 must be smaller than x1.
    - The "label" must describe the localized finding.
+  - The "view" must be either "frontal" or "lateral".
+  - Use "frontal" for the frontal image and "lateral" for the lateral image.
    - Do not return more than three boxes for the same finding.
 
 Laterality:

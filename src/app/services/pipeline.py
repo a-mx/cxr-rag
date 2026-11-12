@@ -14,7 +14,13 @@ class PipelineResult:
     inference_time_ms: int = 0
     confidence_score: float | None = None
 
-def analyze_image(image_path: Path, question: str, top_k: int, strategy: str = "image_only") -> PipelineResult:
+def analyze_image(
+    image_path: Path,
+    lateral_image_path: Path | None,
+    question: str,
+    top_k: int,
+    strategy: str = "image_only",
+) -> PipelineResult:
     start = time.perf_counter()
     
     registry = current_app.extensions["model_registry"]
@@ -32,6 +38,7 @@ def analyze_image(image_path: Path, question: str, top_k: int, strategy: str = "
 
     generated = registry.generator.generate(
         image_path,
+        lateral_image=lateral_image_path,
         retrieved_context=context,
     )
 

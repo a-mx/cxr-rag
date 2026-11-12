@@ -15,7 +15,7 @@
                 <a href="{{ url_for('main.analyze') }}">Analyze</a>
                 <a href="{{ url_for('main.history') }}">History</a>
                 <a href="{{ url_for('auth.logout') }}">Logout</a>
-                <span>({{ current_user.username }})</span>
+                <span>(Logged in as {{ current_user.username }})</span>
             {% else %}
                 <a href="{{ url_for('auth.login') }}">Login</a>
                 <a href="{{ url_for('auth.register') }}">Register</a>

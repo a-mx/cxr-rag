@@ -54,12 +54,18 @@ def index():
 def analyze():
     form = AnalyzeForm()
     if form.validate_on_submit():
-        original_name, image_path = _save_upload(form.image.data)
+        original_name, image_path = _save_upload(form.frontal_image.data)
+        lateral_name = None
+        lateral_path = None
+
+        if form.lateral_image.data:
+            lateral_name, lateral_path = _save_upload(form.lateral_image.data)
 
         k = current_app.config["TOP_K"]
         
         result = analyze_image(
             image_path=image_path,
+            lateral_image_path=lateral_path,
             question=form.question.data or None,
             top_k=k,
             strategy="image_only",
@@ -68,7 +74,9 @@ def analyze():
         analysis = Analysis(
             user_id=current_user.id,
             image_filename=original_name,
+            lateral_filename=lateral_name,
             stored_image_name=image_path.name,
+            stored_lateral_image_name=lateral_path.name if lateral_path else None,
             user_prompt=form.question.data or None,
             generated_report=result.report,
             top_k=k,
@@ -84,6 +92,7 @@ def analyze():
             analysis.bounding_boxes.append(
                 BoundingBox(
                     label=box["label"],
+                    view=box.get("view", "frontal"),
                     x0=box["x0"],
                     y0=box["y0"],
                     x1=box["x1"],
@@ -129,7 +138,17 @@ def analysis_image(analysis_id: int):
         abort(403)
 
     upload_dir = Path(current_app.config["UPLOAD_DIR"]).resolve()
-    image_path = (upload_dir / analysis.stored_image_name).resolve()
+    view = request.args.get("view", "frontal")
+    image_name = (
+        analysis.stored_lateral_image_name
+        if view == "lateral"
+        else analysis.stored_image_name
+    )
+
+    if not image_name:
+        abort(404)
+
+    image_path = (upload_dir / image_name).resolve()
 
     if upload_dir not in image_path.parents or not image_path.is_file():
         abort(404)

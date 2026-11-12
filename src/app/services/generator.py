@@ -24,7 +24,13 @@ class Generator:
         )
     
     @torch.inference_mode()
-    def generate(self, image, retrieved_context="", max_new_tokens=2000):
+    def generate(
+        self,
+        image,
+        lateral_image=None,
+        retrieved_context="",
+        max_new_tokens=2000,
+    ):
         image = Image.open(image).convert("RGB")
 
         path = current_app.config["PROMPT_PATH"]
@@ -40,21 +46,35 @@ class Generator:
         
         prompt = prompt.replace("{retrieved_context}",retrieved_context or "",)
 
+        content = [
+            {
+                "type": "text",
+                "text": "Frontal chest X-ray:",
+            },
+            {
+                "type": "image",
+                "image": image,
+            },
+        ]
+
+        if lateral_image is not None:
+            content.extend([
+                {
+                    "type": "text",
+                    "text": "Lateral chest X-ray:",
+                },
+                {
+                    "type": "image",
+                    "image": Image.open(lateral_image).convert("RGB"),
+                },
+            ])
+
+        content.append({"type": "text", "text": prompt})
+
         messages = [
             {
                 "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "image": image,
-                    },
-
-                    #todo: image1, image2
-                    {
-                        "type": "text",
-                        "text": prompt,
-                    },
-                ],
+                "content": content,
             },
         ]
 
@@ -126,6 +146,9 @@ class Generator:
             bounding_boxes.append(
                 {
                     "label": label,
+                    "view": item.get("view", "frontal")
+                    if item.get("view", "frontal") in {"frontal", "lateral"}
+                    else "frontal",
                     "x0": x0 / 1000,
                     "y0": y0 / 1000,
                     "x1": x1 / 1000,
