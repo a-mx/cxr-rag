@@ -1,17 +1,29 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from flask_wtf.file import FileField, FileRequired
 from wtforms import TextAreaField, SubmitField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
+
+
+def validate_medical_image(form, field):
+    filename = (field.data.filename or "").lower()
+
+    if not (
+        filename.endswith(".dcm")
+        or filename.endswith(".dicom")
+        or filename.endswith(".nii")
+        or filename.endswith(".nii.gz")
+        or "." not in filename
+    ):
+        raise ValidationError(
+            "Only DICOM (.dcm, .dicom) and NIfTI (.nii, .nii.gz) files are allowed."
+        )
 
 class AnalyzeForm(FlaskForm):
-    allowed_image_types=["jpg", "png"]
-
-
     frontal_image = FileField(
         label="Frontal chest X-ray image",
         validators=[
-            FileRequired(message="Please select an image."),     
-            FileAllowed(allowed_image_types, message=f"Allowed image types are {', '.join(allowed_image_types)}")
+            FileRequired(message="Please select a frontal image."),
+            validate_medical_image,
             ],
     )
 
@@ -19,7 +31,7 @@ class AnalyzeForm(FlaskForm):
         label="Lateral chest X-ray image",
         validators=[
             Optional(),
-            FileAllowed(allowed_image_types, message=f"Allowed image types are {', '.join(allowed_image_types)}")
+            validate_medical_image,
             ],
     )
 

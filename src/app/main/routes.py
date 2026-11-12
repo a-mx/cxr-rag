@@ -16,6 +16,11 @@ from flask_login import (
 
 import uuid
 from pathlib import Path
+import nibabel as nib
+import numpy as np
+import pydicom
+from PIL import Image
+from pydicom.pixel_data_handlers.util import apply_voi_lut
 from werkzeug.utils import secure_filename
 from src.app.main.forms import AnalyzeForm, ReportEditForm
 from src.app.services.pipeline import analyze_image
@@ -23,18 +28,63 @@ from src.app.models import Analysis, AuditLog, ReportRevision, BoundingBox
 from src.app.extensions import db
 main_bp = Blueprint('main', __name__)
 
+def _normalize_to_uint8(array) -> np.ndarray:
+    array = np.asarray(array, dtype=np.float32)
+    array = np.squeeze(array)
+
+    while array.ndim > 2:
+        array = array[..., array.shape[-1] // 2]
+
+    finite = np.isfinite(array)
+    if not finite.any():
+        raise ValueError("Medical image contains no finite pixel values.")
+
+    minimum = array[finite].min()
+    maximum = array[finite].max()
+
+    if maximum <= minimum:
+        return np.zeros(array.shape, dtype=np.uint8)
+
+    normalized = (array - minimum) / (maximum - minimum)
+    return np.clip(normalized * 255, 0, 255).astype(np.uint8)
+
+
+def _convert_medical_image(source: Path, destination: Path) -> None:
+    name = source.name.lower()
+
+    if name.endswith((".nii", ".nii.gz")):
+        pixels = nib.load(str(source)).get_fdata()
+    else:
+        dataset = pydicom.dcmread(str(source))
+        pixels = apply_voi_lut(dataset.pixel_array, dataset)
+
+        if getattr(dataset, "PhotometricInterpretation", "") == "MONOCHROME1":
+            pixels = np.max(pixels) - pixels
+
+    image = Image.fromarray(_normalize_to_uint8(pixels), mode="L")
+    image.save(destination, format="PNG")
+
+
 def _save_upload(file_storage) -> tuple[str, Path]:
     original_name = secure_filename(file_storage.filename)
-    extension = original_name.rsplit(".", 1)[-1].lower()
+    lower_name = original_name.lower()
+    extension = ".nii.gz" if lower_name.endswith(".nii.gz") else Path(lower_name).suffix
 
-    unique_name = f"{uuid.uuid4().hex}.{extension}"
+    unique_name = f"{uuid.uuid4().hex}{extension}"
     upload_dir = Path(current_app.config["UPLOAD_DIR"])
 
     upload_dir.mkdir(parents=True, exist_ok=True)
-    dest = upload_dir / unique_name
+    source = upload_dir / unique_name
+    converted = upload_dir / f"{uuid.uuid4().hex}.png"
 
-    file_storage.save(dest)
-    return original_name, dest
+    file_storage.save(source)
+
+    try:
+        _convert_medical_image(source, converted)
+    finally:
+        source.unlink(missing_ok=True)
+
+    return original_name, converted
 
 def _can_access_analysis(analysis):
     return (
